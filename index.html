@@ -17,9 +17,23 @@
 
     .invalid-feedback {
     position: absolute;
-    font-size: 0.875em; /* Adjust size if needed */
+    font-size: 0.875em;
     }
-       
+    
+    .weather-map {
+        width: 100%;
+        height: auto;
+        padding: 0.5em;
+    }
+
+    #weather-desc{
+        margin-right: 5rem;
+    }
+
+    #temp{
+        margin-right: 7rem;
+    }
+
 </style>
 
 <body>
@@ -60,6 +74,9 @@
                         <br>
                         <input type="radio" name="degree" id="deg_input" class="mx-2" value = "C" checked>°C</input>
                         <input type="radio" name="degree" class="mx-2" value="F">°F</input>
+                        <div class="invalid-feedback">
+                            Invalid degree value!
+                        </div>
                     </div>
                     <div class="col-sm-2 position-relative">
                         <button type="button" class="btn btn-primary d-flex align-items-center gap-1" id="search_btn"><span class="material-icons">search</span>Search</button>
@@ -71,9 +88,66 @@
                         <button type="button" class="btn btn-warning d-flex h-100"><span class="material-icons">dns</span></button>
                     </div>
                 </div>
-                <!-- <div class="row justify-content-md-center">
-                    <p class="">hihi</p>
-                </div> -->
+            </div>
+            <div class="container mt-4">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#right-now">Right Now</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#next-24-hours">Next 24 Hours</a>
+                    </li>
+                </ul>
+        
+                <div class="tab-content bg-light">
+                    <div id="right-now" class="tab-pane fade show active">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="px-2 pt-2 row">
+                                    <div class="text-end"><h6 id="weather-desc">Scattered Clouds in Athalassa</h6></div>
+                                    <div class="text-end"><h2 id="temp"> 13.84°C</h2></div>
+
+                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+
+                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+
+                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-evenly mx-3 p-1">
+                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
+                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <img src="sky.jpg" class="weather-map" alt="Weather Map">
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div id="next-24-hours" class="tab-pane fade">
+                        <p>Next 24 hours forecast coming soon...</p>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

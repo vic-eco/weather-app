@@ -37,20 +37,20 @@ function handleSearchClick(){
         city.classList.add("is-invalid")
         valid = false
     }
-    if(degree.value.match(/^\s*$/)){
+    if(degree.value.match(/^\s*$/) || (degree.value !== 'C' && degree.value !== 'F')){
         degree.classList.add("is-invalid")
         valid = false
+        console.log(degree.value)
     }
 
     if(valid){
-        requestCoordinates(address.value, region.value, city.value)
+        apiCalls(address.value, region.value, city.value, degree.value)
     }
 
 }
 
-function requestCoordinates(add, reg, city){
+function apiCalls(add, reg, city, deg){
     const url = `https://nominatim.openstreetmap.org/search?q=${add},${reg},${city}&format=json`;
-    console.log(url);
 
     fetch(url, {
         method: "GET",
@@ -68,11 +68,11 @@ function requestCoordinates(add, reg, city){
         response.json().then(
             data => {
                 if(data.length === 0){
-                    console.log("No results found");
+                        console.log("No results found");
                 }else{
                     const latitude = data[0].lat;
-                    const longitute = data[0].lon;
-                    console.log(latitude, longitute);
+                    const longitude = data[0].lon;
+                    requestWeatherConditions(latitude, longitude, deg);
                 }
             }
         );
@@ -82,5 +82,47 @@ function requestCoordinates(add, reg, city){
         console.log('Error: ', error);
     })
 
+
+}
+
+function requestWeatherConditions(lat, lon, deg){
+    
+    const key = "";
+    let unit;
+    if(deg === 'C'){
+        unit = "metric";
+    }else if(deg === 'F'){
+        unit = "imperial";
+    }
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
+    
+    
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+        }
+    })
+    .then(
+        response =>{
+            if (!response.ok){
+                console.log("Status Code:",response.status);
+                return;
+            }
+        
+        response.json().then(
+            data => {
+                createWeatherCard(data);
+            }
+        );
+        }
+    )
+    .catch(error=>{
+        console.log('Error: ', error);
+    })
+}
+
+function createWeatherCard(data){
 
 }
