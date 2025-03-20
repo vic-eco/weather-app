@@ -33,12 +33,27 @@
     #temp{
         margin-right: 7rem;
     }
+    
+    #low-high{
+        padding-right: 7rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .nav-tabs .nav-link {
+    background-color: blue; 
+    color: white;
+    }
+
+    .nav-tabs .nav-link.active {
+    background-color: #fff;  
+    color: blue;
+    }
 
 </style>
 
 <body>
     <div class="bg-image" style="background-image: url('./sky.jpg'); height: 100vh;">
-        <main>
+        <main id="main">
             <h1 class="text-center pt-4 text-light text-shadow">Weather Dashboard</h1>
             <div class="container bg-light bg-opacity-25">
                 <div class="row g-3 pb-5 pt-3 mt-5 align-items-center">
@@ -86,66 +101,6 @@
                     </div>
                     <div class="col-sm-1 position-relative">
                         <button type="button" class="btn btn-warning d-flex h-100"><span class="material-icons">dns</span></button>
-                    </div>
-                </div>
-            </div>
-            <div class="container mt-4">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#right-now">Right Now</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#next-24-hours">Next 24 Hours</a>
-                    </li>
-                </ul>
-        
-                <div class="tab-content bg-light">
-                    <div id="right-now" class="tab-pane fade show active">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="px-2 pt-2 row">
-                                    <div class="text-end"><h6 id="weather-desc">Scattered Clouds in Athalassa</h6></div>
-                                    <div class="text-end"><h2 id="temp"> 13.84°C</h2></div>
-
-                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-
-                                    <div class="d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-
-                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-
-                                    <div class="d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-
-                                    <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-evenly mx-3 p-1">
-                                        <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-                                        <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <img src="sky.jpg" class="weather-map" alt="Weather Map">
-                            </div>
-                        </div>
-                    </div>
-        
-                    <div id="next-24-hours" class="tab-pane fade">
-                        <p>Next 24 hours forecast coming soon...</p>
                     </div>
                 </div>
             </div>
