@@ -44,7 +44,6 @@ function handleSearchClick(){
     if(degree.value.match(/^\s*$/) || (degree.value !== 'C' && degree.value !== 'F')){
         degree.classList.add("is-invalid")
         valid = false
-        console.log(degree.value)
     }
 
     if(valid){
@@ -147,13 +146,15 @@ function requestWeatherConditions(lat, lon, deg){
 }
 
 function createWeatherCard(dataNow,dataNextHours, deg){
-    console.log(dataNow);
-    console.log(dataNextHours);
+
     let windUnit;
+    let pressureUnit;
     if (deg === 'C'){
         windUnit = "meters/sec";
+        pressureUnit = "hPa";
     }else{
         windUnit = "miles/hour";
+        pressureUnit = "Mb";
     }
 
     let desc = dataNow.weather[0].description;
@@ -171,7 +172,6 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     const sunset = formatTimestamp(dataNow.sys.sunset);
     const location = dataNow.name;
 
-
     const mainElement = document.getElementById("main")
 
     if(cardOn == 1){
@@ -183,7 +183,7 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     mainElement.appendChild(hLine);
 
     const labels = ["Pressure:", "Humidity:", "Wind Speed:", "Cloud Cover:", "Sunrise:", "Sunset:"];
-    const values = [`${pressure} hPa`, `${humidity} %`, `${windSpeed} ${windUnit}`, `${cloudCover} %`, sunrise, sunset];
+    const values = [`${pressure} ${pressureUnit}`, `${humidity} %`, `${windSpeed} ${windUnit}`, `${cloudCover} %`, sunrise, sunset];
     let labelIndex = 0;
 
     const container = document.createElement("div");
@@ -267,8 +267,8 @@ function createWeatherCard(dataNow,dataNextHours, deg){
 
     const table = document.createElement("table");
     table.classList.add("table", "table-striped", "text-center");
-    const tableBody = document.createElement("tbody");
 
+    const tableBody = document.createElement("tbody");
 
     for(let i=0; i<6; i++){
         const tableRow = document.createElement("tr");
@@ -303,7 +303,135 @@ function createWeatherCard(dataNow,dataNextHours, deg){
 
     const next24Hours = document.createElement("div");
     next24Hours.id = "next-24-hours";
-    next24Hours.classList.add("tab-pane", "fade");
+    next24Hours.classList.add("tab-pane", "fade", "pt-3");
+
+
+    const next24HoursModal = document.createElement('div');
+    next24HoursModal.classList.add("modal");
+    next24HoursModal.tabIndex = -1;
+    next24HoursModal.id = 'next-24-hours-modal';
+
+    const next24HoursModalDialog = document.createElement('div');
+    next24HoursModalDialog.className = 'modal-dialog';
+
+    const next24HoursModalContent = document.createElement('div');
+    next24HoursModalContent.className = 'modal-content';
+
+    const next24HoursModalHeader = document.createElement('div');
+    next24HoursModalHeader.className = 'modal-header';
+
+    const next24HoursModalTitle = document.createElement('h5');
+    next24HoursModalTitle.className = 'modal-title';
+    next24HoursModalTitle.id = 'next-24-hours-modal-title';
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close';
+    closeButton.setAttribute('data-bs-dismiss', 'modal');
+    closeButton.setAttribute('aria-label', 'Close');
+
+    const next24HoursModalBody = document.createElement('div');
+    next24HoursModalBody.className = 'modal-body';
+    next24HoursModalBody.id = "next-24-hours-modal-body";
+
+    const next24HoursModalFooter = document.createElement('div');
+    next24HoursModalFooter.className = 'modal-footer';
+
+    const closeFooterButton = document.createElement('button');
+    closeFooterButton.type = 'button';
+    closeFooterButton.className = 'btn btn-danger';
+    closeFooterButton.setAttribute('data-bs-dismiss', 'modal');
+    closeFooterButton.textContent = 'Close';
+
+    next24HoursModalHeader.appendChild(next24HoursModalTitle);
+    next24HoursModalHeader.appendChild(closeButton);
+    next24HoursModalFooter.appendChild(closeFooterButton);
+    next24HoursModalContent.appendChild(next24HoursModalHeader);
+    next24HoursModalContent.appendChild(next24HoursModalBody);
+    next24HoursModalContent.appendChild(next24HoursModalFooter);
+    next24HoursModalDialog.appendChild(next24HoursModalContent);
+    next24HoursModal.appendChild(next24HoursModalDialog);
+
+    new bootstrap.Modal(next24HoursModal);
+
+    next24HoursModal.addEventListener('hidden.bs.modal', function () {
+        next24HoursModal.querySelector('#next-24-hours-modal-title').textContent = ''; 
+        next24HoursModal.querySelector('#next-24-hours-modal-body').innerHTML = '';
+    });
+
+    next24Hours.appendChild(next24HoursModal);
+
+    const next24Table = document.createElement("table");
+    next24Table.id = "next-24-table";
+    next24Table.classList.add("table", "table-striped", "text-center");
+    const next24TableHead = document.createElement("thead");
+    
+    const timeLabel = document.createElement("th");
+    timeLabel.textContent = "Time";
+    const summaryLabel = document.createElement("th");
+    summaryLabel.textContent = "Summary";
+    const tempLabel = document.createElement("th");
+    tempLabel.textContent = "Temp";
+    const cloudLabel = document.createElement("th");
+    cloudLabel.textContent = "Cloud Cover";
+    const detailsLabel = document.createElement("th");
+    detailsLabel.textContent = "Details";
+
+    next24TableHead.appendChild(timeLabel);
+    next24TableHead.appendChild(summaryLabel);
+    next24TableHead.appendChild(tempLabel);
+    next24TableHead.appendChild(cloudLabel);
+    next24TableHead.appendChild(detailsLabel);
+
+    next24Table.appendChild(next24TableHead);
+
+    const next24TableBody = document.createElement("tbody");
+
+    for (let i=0; i<8; i++){
+        const tableRow = document.createElement("tr");
+        const tableTimeData = document.createElement("td");
+        const tableSummaryData = document.createElement("td");
+        const tableTempData = document.createElement("td");
+        const tableCloudCoverData = document.createElement("td");
+        const tableDetailsData = document.createElement("td");
+
+        tableTimeData.textContent = formatTimestamp(new Date(dataNextHours.list[i].dt));
+        
+        const summaryImage = document.createElement("img");
+        summaryImage.src = `https://openweathermap.org/img/wn/${dataNextHours.list[i].weather[0].icon}@2x.png`
+        summaryImage.style.width = "25%";
+        summaryImage.style.height = "auto";
+        summaryImage.style.filter = "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7))";
+        tableSummaryData.appendChild(summaryImage);
+
+        tableTempData.textContent = `${dataNextHours.list[i].main.temp} °${deg}`;
+        tableCloudCoverData.textContent = `${dataNextHours.list[i].clouds.all}%`;
+
+        const detailsButton = document.createElement("button");
+        detailsButton.type = "button";
+        detailsButton.classList.add("btn", "btn-success");
+        detailsButton.textContent = "Details"
+        detailsButton.setAttribute("data-bs-toggle", "modal");
+        detailsButton.setAttribute("href", "#next-24-hours-modal");
+        detailsButton.setAttribute("data-bs-target", "#next-24-hours-modal");
+        detailsButton.id = `${i}`;
+        detailsButton.addEventListener('click', ()=>{
+            changeModal(detailsButton, dataNextHours, summaryImage, pressureUnit, windUnit);
+        });
+        tableDetailsData.appendChild(detailsButton);
+
+        tableRow.appendChild(tableTimeData);
+        tableRow.appendChild(tableSummaryData);
+        tableRow.appendChild(tableTempData);
+        tableRow.appendChild(tableCloudCoverData);
+        tableRow.appendChild(tableDetailsData);
+
+        next24TableBody.appendChild(tableRow);
+    }
+
+    next24Table.appendChild(next24TableBody);
+
+    next24Hours.appendChild(next24Table);
 
     tabs.appendChild(next24Hours);
 
@@ -417,4 +545,73 @@ function formatTimestamp(timestamp) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
   
     return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
+}
+
+function formatTimestampForModal(timestamp) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+    const date = new Date(timestamp * 1000);
+  
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    return `${day} ${months[month]} ${year} ${hours}:${minutes}`;
+}
+
+function changeModal(element, data, summaryImg, pUnit, wUnit){
+    modalID = parseInt(element.id);
+    const date = formatTimestampForModal(data.list[modalID].dt)
+
+    const title = document.getElementById("next-24-hours-modal-title")
+    title.textContent = `Weather in ${data.city.name} on ${date}`;
+
+    const contentTopContainer = document.createElement("div");
+    contentTopContainer.style.textAlign = "center";
+
+    const content = document.getElementById("next-24-hours-modal-body");
+    let contentIcon = summaryImg.cloneNode(false);
+    contentIcon.style.width = "20%"
+    
+    const contentDesc = document.createElement("span");
+    contentDesc.textContent = `${data.list[modalID].weather[0].main} (${data.list[modalID].weather[0].description})`;
+    contentDesc.style.marginLeft = "3rem";
+
+    contentTopContainer.appendChild(contentIcon);
+    contentTopContainer.appendChild(contentDesc);
+
+    const contentTable = document.createElement("table");
+    contentTable.classList.add("table", "text-center");
+
+    const tableHead = document.createElement("thead");
+    const humidityHead = document.createElement("th")
+    humidityHead.textContent = "Humidity";
+    const pressureHead = document.createElement("th")
+    pressureHead.textContent = "Pressure";
+    const windSpeedHead = document.createElement("th")
+    windSpeedHead.textContent = "Wind Speed";
+
+    tableHead.appendChild(humidityHead);
+    tableHead.appendChild(pressureHead);
+    tableHead.appendChild(windSpeedHead);
+
+    contentTable.appendChild(tableHead);
+
+    const humidityValue = document.createElement("td");
+    humidityValue.textContent = `${data.list[modalID].main.humidity}%`;
+    const pressureValue = document.createElement("td");
+    pressureValue.textContent = `${data.list[modalID].main.pressure} ${pUnit}`;
+    const windSpeedValue = document.createElement("td");
+    windSpeedValue.textContent = `${data.list[modalID].wind.speed} ${wUnit}`;
+
+    const tableRow = document.createElement("tr");
+    tableRow.appendChild(humidityValue);
+    tableRow.appendChild(pressureValue);
+    tableRow.appendChild(windSpeedValue);
+
+    contentTable.appendChild(tableRow);
+
+    content.appendChild(contentTopContainer);
+    content.appendChild(contentTable);
+}
