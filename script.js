@@ -1,3 +1,5 @@
+const key = "";
+
 const searchBtn = document.getElementById("search_btn");
 searchBtn.addEventListener('click', handleSearchClick);
 
@@ -87,7 +89,6 @@ function apiCalls(add, reg, city, deg){
 
 function requestWeatherConditions(lat, lon, deg){
     
-    const key = "";
     let unit;
     if(deg === 'C'){
         unit = "metric";
@@ -95,10 +96,10 @@ function requestWeatherConditions(lat, lon, deg){
         unit = "imperial";
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
-    
-    
-    fetch(url, {
+    const outerURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
+    const innerURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
+
+    fetch(outerURL, {
         method: "GET",
         headers: {
             "Accept": "application/json",
@@ -112,8 +113,30 @@ function requestWeatherConditions(lat, lon, deg){
             }
         
         response.json().then(
-            data => {
-                createWeatherCard(data);
+            outerData => {
+                fetch(innerURL, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                    }
+                })
+                .then(
+                    response =>{
+                        if (!response.ok){
+                            console.log("Status Code:",response.status);
+                            return;
+                        }
+                    
+                    response.json().then(
+                        innerData => {
+                            createWeatherCard(outerData, innerData, deg);
+                        }
+                    );
+                    }
+                )
+                .catch(error=>{
+                    console.log('Error: ', error);
+                })
             }
         );
         }
@@ -123,39 +146,48 @@ function requestWeatherConditions(lat, lon, deg){
     })
 }
 
-function createWeatherCard(data){
-    const mainElement = document.getElementById("main")
+function createWeatherCard(dataNow,dataNextHours, deg){
+    console.log(dataNow);
+    console.log(dataNextHours);
+    let windUnit;
+    if (deg === 'C'){
+        windUnit = "meters/sec";
+    }else{
+        windUnit = "miles/hour";
+    }
 
-    console.log(data);
-
-    console.log(data.weather[0]);
-    let desc = data.weather[0].description;
+    let desc = dataNow.weather[0].description;
     desc = capitalizeWords(desc);
 
-    const icon = data.weather[0].icon;
-    const temp = data.main.temp
-    const tempMin = data.main["temp_min"];
-    const tempMax = data.main["temp_max"];
-    const pressure = data.main.pressure;
-    const humidity = data.main.humidity;
-    const windSpeed = data.wind.speed;
-    const cloudCover = data.clouds.all;
-    const sunrise = formatTimestamp(data.sys.sunrise);
-    const sunset = formatTimestamp(data.sys.sunset);
-    const location = data.name;
+    const icon = dataNow.weather[0].icon;
+    const temp = dataNow.main.temp
+    const tempMin = dataNow.main["temp_min"];
+    const tempMax = dataNow.main["temp_max"];
+    const pressure = dataNow.main.pressure;
+    const humidity = dataNow.main.humidity;
+    const windSpeed = dataNow.wind.speed;
+    const cloudCover = dataNow.clouds.all;
+    const sunrise = formatTimestamp(dataNow.sys.sunrise);
+    const sunset = formatTimestamp(dataNow.sys.sunset);
+    const location = dataNow.name;
 
 
+    const mainElement = document.getElementById("main")
 
     if(cardOn == 1){
     mainElement.removeChild(mainElement.lastChild);
+    mainElement.removeChild(mainElement.lastChild);
     }
 
+    const hLine = document.createElement("hr");
+    mainElement.appendChild(hLine);
+
     const labels = ["Pressure:", "Humidity:", "Wind Speed:", "Cloud Cover:", "Sunrise:", "Sunset:"];
-    const values = [`${pressure} hPa`, `${humidity} %`, `${windSpeed} meters/sec`, `${cloudCover} %`, sunrise, sunset];
+    const values = [`${pressure} hPa`, `${humidity} %`, `${windSpeed} ${windUnit}`, `${cloudCover} %`, sunrise, sunset];
     let labelIndex = 0;
 
     const container = document.createElement("div");
-    container.classList.add("container", "mt-4");
+    container.classList.add("container", "mt-3");
     container.id = "weather-details-card"
 
     const navList = document.createElement("ul");
@@ -207,7 +239,7 @@ function createWeatherCard(data){
     const generalInfo2 = generalInfo.cloneNode();
 
     generalInfo.innerHTML = `<h6 id="weather-desc">${desc} in ${location}</h6>`;
-    generalInfo2.innerHTML = `<h2 id="temp">${temp} °C</h2>`
+    generalInfo2.innerHTML = `<h2 id="temp">${temp} °${deg}</h2>`
 
     rowInner.appendChild(generalInfo);
     rowInner.appendChild(generalInfo2);
@@ -217,57 +249,57 @@ function createWeatherCard(data){
     lowHigh.classList.add("text-end");
     const low = document.createElement("span");
     low.style.color = "blue";
-    low.textContent = `L:${tempMin} °C`;
+    low.textContent = `L:${tempMin} °${deg}`;
     const line = document.createElement("span");
     line.textContent = " | ";
     const high = document.createElement("span");
     high.style.color = "red";
-    high.textContent = `H:${tempMax} °C`;
+    high.textContent = `H:${tempMax} °${deg}`;
 
     lowHigh.appendChild(low);
     lowHigh.appendChild(line);
     lowHigh.appendChild(high);
 
     rowInner.appendChild(lowHigh)
-    
+
+    const tableContainer = document.createElement("div");
+    tableContainer.classList.add("px-4");
+
+    const table = document.createElement("table");
+    table.classList.add("table", "table-striped", "text-center");
+    const tableBody = document.createElement("tbody");
+
+
     for(let i=0; i<6; i++){
-        const group = document.createElement("div");
-        group.classList.add("d-flex", "justify-content-evenly", "mx-3", "p-1");
-        if(i%2===0){
-            group.classList.add("bg-secondary", "bg-opacity-25");
-        }
+        const tableRow = document.createElement("tr");
+        const rowLabel = document.createElement("td");
+        rowLabel.textContent = labels[labelIndex];
+        const rowData = document.createElement("td");
+        rowData.textContent = values[labelIndex++];
 
-        const groupChild1 = document.createElement("span");
-        groupChild1.classList.add("col-6", "text-start", "mb-2",  "mx-4");
-        groupChild1.textContent = labels[labelIndex];
-        const groupChild2 = document.createElement("span");
-        groupChild2.classList.add("col-6", "text-start", "mb-2");
-        groupChild2.textContent = values[labelIndex++];
-
-        group.appendChild(groupChild1);
-        group.appendChild(groupChild2);
-        rowInner.appendChild(group);
+        tableRow.appendChild(rowLabel);
+        tableRow.appendChild(rowData);
+        tableBody.appendChild(tableRow);
     }
 
-
-
-
+    table.appendChild(tableBody);
+    tableContainer.appendChild(table);
+    rowInner.appendChild(tableContainer);
 
     tabDivider.appendChild(rowInner);
     rowOuter.appendChild(tabDivider);
 
     const tabDivider2 = tabDivider.cloneNode(false);
-    const map = document.createElement("img");
-    map.src= "sky.jpg";
-    map.classList.add("weather-map");
-    map.alt="weather map";
-    tabDivider2.appendChild(map);
+    const mapDiv = document.createElement("div");
+    mapDiv.id = "map";
+    mapDiv.classList.add("map")
+
+    tabDivider2.appendChild(mapDiv);
 
     rowOuter.appendChild(tabDivider2)
 
     rightNow.appendChild(rowOuter);
     tabs.appendChild(rightNow);
-
 
     const next24Hours = document.createElement("div");
     next24Hours.id = "next-24-hours";
@@ -278,6 +310,28 @@ function createWeatherCard(data){
     container.appendChild(tabs);
 
     mainElement.appendChild(container);
+
+    
+    let map = new ol.Map({ 
+        target: 'map',
+        layers: [
+        new ol.layer.Tile({
+        source: new ol.source.OSM()
+        })
+        ],
+        view: new ol.View({
+        center: ol.proj.fromLonLat([parseFloat(dataNow.coord.lon), parseFloat(dataNow.coord.lat)]),
+        zoom: 15
+        })
+       });
+
+    let layer_temp = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+        url: `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${key}`,
+        })
+       });
+    
+    map.addLayer(layer_temp);
 
     cardOn = 1;
     // <div class="container mt-4">
@@ -303,35 +357,36 @@ function createWeatherCard(data){
     //                         <span> | </span>
     //                         <span>H:18.84 °C</span>
     //                     </div>
-
-    //                     <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-    //                     </div>
-
-    //                     <div class="d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-    //                     </div>
-
-    //                     <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-    //                     </div>
-
-    //                     <div class="d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-    //                     </div>
-
-    //                     <div class="bg-secondary bg-opacity-25 d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
-    //                     </div>
                         
-    //                     <div class="d-flex justify-content-evenly mx-3 p-1">
-    //                         <span class="col-6 text-start mb-2  mx-4">Pressure:</span>
-    //                         <span  class="col-6 text-center mb-2 ">1024 hPa</span>
+    //                     <div class="px-4">
+    //                     <table class="table text-center">
+    //                         <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+    //                          <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+
+    //                         <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+    //                          <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+
+    //                         <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+    //                          <tr>
+    //                             <td>Pressure:</td>
+    //                             <td>1024 hPa</td>
+    //                         </tr>
+    //                     </table>
     //                     </div>
     //                 </div>
     //             </div>
@@ -342,7 +397,7 @@ function createWeatherCard(data){
     //     </div>
 
     //     <div id="next-24-hours" class="tab-pane fade">
-    //         <p>Next 24 hours forecast coming soon...</p>
+    //         <p>Next 24 hours forecast coming soon...</p> -->
     //     </div>
 }
 
