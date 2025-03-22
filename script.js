@@ -11,6 +11,8 @@ const city = document.getElementById("city_input");
 city.onclick = handleToValid
 const degrees = document.getElementsByName("degree")
 
+const mainElement = document.getElementById("main")
+
 let cardOn = 0;
 
 function handleToValid({target}){
@@ -87,7 +89,7 @@ function apiCalls(add, reg, city, deg){
 }
 
 function requestWeatherConditions(lat, lon, deg){
-    
+    console.log(lat, lon);
     let unit;
     if(deg === 'C'){
         unit = "metric";
@@ -172,9 +174,9 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     const sunset = formatTimestamp(dataNow.sys.sunset);
     const location = dataNow.name;
 
-    const mainElement = document.getElementById("main")
-
     if(cardOn == 1){
+    mainElement.removeChild(mainElement.lastChild);
+    mainElement.removeChild(mainElement.lastChild);
     mainElement.removeChild(mainElement.lastChild);
     mainElement.removeChild(mainElement.lastChild);
     }
@@ -215,7 +217,6 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     }
 
     container.appendChild(navList);
-
 
     const tabs = document.createElement("div");
     tabs.classList.add("tab-content", "bg-light");
@@ -461,72 +462,95 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     
     map.addLayer(layer_temp);
 
+    const hLine2 = document.createElement("hr");
+    mainElement.appendChild(hLine2);
+
+    createCharts(dataNextHours, deg, pressureUnit);
+
     cardOn = 1;
-    // <div class="container mt-4">
-    // <ul class="nav nav-tabs">
-    //     <li class="nav-item">
-    //         <a class="nav-link active" data-bs-toggle="tab" href="#right-now">Right Now</a>
-    //     </li>
-    //     <li class="nav-item">
-    //         <a class="nav-link" data-bs-toggle="tab" href="#next-24-hours">Next 24 Hours</a>
-    //     </li>
-    // </ul>
+}
 
-    // <div class="tab-content bg-light">
-    //     <div id="right-now" class="tab-pane fade show active">
-    //         <div class="row">
-    //             <div class="col-md-6">
-    //                 <div class="px-2 pt-2 row">
-    //                     <div class="text-end"><h6 id="weather-desc">Scattered Clouds in Athalassa</h6></div>
-    //                     <div class="text-end"><h2 id="temp">13.84 °C</h2></div>
+function createCharts(data, deg, pUnit){
+    console.log(data);
 
-    //                     <div class="text-end" id="low-high">
-    //                         <span>L:13.84 °C</span>
-    //                         <span> | </span>
-    //                         <span>H:18.84 °C</span>
-    //                     </div>
-                        
-    //                     <div class="px-4">
-    //                     <table class="table text-center">
-    //                         <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
-    //                          <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
+    const chartContainer = document.createElement("div");
+    chartContainer.classList.add("container", "mt-3");
 
-    //                         <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
-    //                          <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
+    const chartCard = document.createElement("div");
+    chartCard.classList.add("card");
 
-    //                         <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
-    //                          <tr>
-    //                             <td>Pressure:</td>
-    //                             <td>1024 hPa</td>
-    //                         </tr>
-    //                     </table>
-    //                     </div>
-    //                 </div>
-    //             </div>
-    //             <div class="col-md-6">
-    //                 <img src="sky.jpg" class="weather-map" alt="Weather Map">
-    //             </div>
-    //         </div>
-    //     </div>
+    const chartHeader = document.createElement("div");
+    chartHeader.classList.add("card-header");
+    chartHeader.textContent = "Weather Forecast";
 
-    //     <div id="next-24-hours" class="tab-pane fade">
-    //         <p>Next 24 hours forecast coming soon...</p> -->
-    //     </div>
+    const chartBody = document.createElement("div");
+    chartBody.classList.add("card-body", "row");
+
+    const chartIDs = ["tempChart", "humChart", "pressChart"];
+    for (let i=0; i<3; i++){
+        const chart = document.createElement("div");
+        chart.classList.add("col-md-12", "col-sm-12", "col-lg-4", "mb-3");
+        chart.id = chartIDs[i];
+        chartBody.appendChild(chart);
+    }
+
+    chartCard.appendChild(chartHeader);
+    chartCard.appendChild(chartBody);
+    chartContainer.appendChild(chartCard);
+
+    mainElement.appendChild(chartContainer);
+
+    let tempValues = [];
+    let humValues = [];
+    let pressValues= [];
+    let dayLabels = [];
+
+    for (let i=0; i<40; i++){
+        tempValues.push(parseFloat(data.list[i].main.temp))
+        humValues.push(parseInt(data.list[i].main.humidity))
+        pressValues.push(parseInt(data.list[i].main.pressure))
+    }
+
+    for(let i=0; i<40; i = i+8){
+        dayLabels.push(formatTimestampForChart(data.list[i].dt));
+    }
+
+    const layout = {
+        margin: { l: 40, r: 20, t: 40, b: 40 },
+        xaxis: {
+            tickvals: [0, 8, 16, 24, 32],
+            ticktext: dayLabels,
+            showline: true
+        }
+    };
+
+    const tempTrace = {
+        x: Array.from({ length: 40 }, (_, i) => i), // 40 data points
+         // values in x axis
+        y: tempValues, // array of values that will be plotted
+        mode: 'lines+markers' // linechart with markers (dots)
+     };
+
+
+    const humTrace = {
+            x: Array.from({ length: 40 }, (_, i) => i), // values in x axis
+            y: humValues, // array of values that will be plotted
+            mode: 'lines+markers' // linechart with markers (dots)
+    };
+
+    const pressTrace = {
+        x: Array.from({ length: 40 }, (_, i) => i), // values in x axis
+        y: pressValues, // array of values that will be plotted
+        mode: 'lines+markers' // linechart with markers (dots)
+    };
+
+    layout.title = {text: `Temperature (${deg})`};
+    Plotly.newPlot("tempChart", [tempTrace], layout, {responsive: true});
+    layout.title = {text: 'Humidity (%)'};
+    Plotly.newPlot("humChart", [humTrace], layout, {responsive: true});
+    layout.title = {text: `Pressure (${pUnit})`};
+    Plotly.newPlot("pressChart", [pressTrace], layout, {responsive: true});
+
 }
 
 function capitalizeWords(str) {
@@ -539,7 +563,7 @@ function formatTimestamp(timestamp) {
     const date = new Date(timestamp * 1000);
   
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const month = String(date.getMonth()+1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -552,12 +576,22 @@ function formatTimestampForModal(timestamp) {
     const date = new Date(timestamp * 1000);
   
     const year = date.getFullYear();
-    const month = date.getMonth() + 1
+    const month = date.getMonth()
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
   
     return `${day} ${months[month]} ${year} ${hours}:${minutes}`;
+}
+
+function formatTimestampForChart(timestamp) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+    const date = new Date(timestamp * 1000);
+  
+    const month = date.getMonth()
+    const day = String(date.getDate()).padStart(2, '0');
+  
+    return `${months[month]} ${day}`;
 }
 
 function changeModal(element, data, summaryImg, pUnit, wUnit){
