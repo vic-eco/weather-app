@@ -3,6 +3,9 @@ const key = "";
 const searchBtn = document.getElementById("search_btn");
 searchBtn.addEventListener('click', handleSearchClick);
 
+const clearBtn = document.getElementById("clear-btn");
+clearBtn.addEventListener('click', handleClearClick);
+
 const address = document.getElementById("add_input");
 address.onclick = handleToValid
 const region = document.getElementById("reg_input");
@@ -54,6 +57,34 @@ function handleSearchClick(){
 
 }
 
+function handleClearClick(){
+    //Remove invalid messages
+    if (address.classList.contains("is-invalid"))
+        address.classList.remove("is-invalid")
+    if (region.classList.contains("is-invalid"))
+        region.classList.remove("is-invalid")
+    if (city.classList.contains("is-invalid"))
+        city.classList.remove("is-invalid")
+
+    //Clear text boxes
+    address.value = "";
+    region.value = "";
+    city.value = "";
+
+    //Reset to Celcius
+    degrees[0].checked = true;
+
+    //Remove results
+    if (cardOn === 1){
+        mainElement.removeChild(mainElement.lastChild);
+        mainElement.removeChild(mainElement.lastChild);
+        mainElement.removeChild(mainElement.lastChild);
+        mainElement.removeChild(mainElement.lastChild);
+    }
+
+    cardOn = 0;
+}
+
 function apiCalls(add, reg, city, deg){
     const url = `https://nominatim.openstreetmap.org/search?q=${add},${reg},${city}&format=json`;
 
@@ -73,9 +104,9 @@ function apiCalls(add, reg, city, deg){
         response.json().then(
             data => {
                 if(data.length === 0){
-                        console.log("No results found");
+                    alert("Results Not Found! Try Again.")
                 }else{
-                    requestWeatherConditions(data[0].lat, data[0].lon, deg);
+                    requestWeatherConditions(data[0].lat, data[0].lon, deg, reg, city);
                 }
             }
         );
@@ -88,7 +119,7 @@ function apiCalls(add, reg, city, deg){
 
 }
 
-function requestWeatherConditions(lat, lon, deg){
+function requestWeatherConditions(lat, lon, deg, reg, city){
     console.log(lat, lon);
     let unit;
     if(deg === 'C'){
@@ -130,7 +161,7 @@ function requestWeatherConditions(lat, lon, deg){
                     
                     response.json().then(
                         innerData => {
-                            createWeatherCard(outerData, innerData, deg);
+                            createWeatherCard(outerData, innerData, deg, reg, city);
                         }
                     );
                     }
@@ -147,7 +178,7 @@ function requestWeatherConditions(lat, lon, deg){
     })
 }
 
-function createWeatherCard(dataNow,dataNextHours, deg){
+function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
 
     let windUnit;
     let pressureUnit;
@@ -465,12 +496,12 @@ function createWeatherCard(dataNow,dataNextHours, deg){
     const hLine2 = document.createElement("hr");
     mainElement.appendChild(hLine2);
 
-    createCharts(dataNextHours, deg, pressureUnit);
+    createCharts(dataNextHours, deg, pressureUnit, reg, city);
 
     cardOn = 1;
 }
 
-function createCharts(data, deg, pUnit){
+function createCharts(data, deg, pUnit, reg, city){
     console.log(data);
 
     const chartContainer = document.createElement("div");
@@ -481,7 +512,7 @@ function createCharts(data, deg, pUnit){
 
     const chartHeader = document.createElement("div");
     chartHeader.classList.add("card-header");
-    chartHeader.textContent = "Weather Forecast";
+    chartHeader.textContent = `Weather Forecast for ${reg}, ${city}`;
 
     const chartBody = document.createElement("div");
     chartBody.classList.add("card-body", "row");
