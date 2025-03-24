@@ -1,184 +1,4 @@
-const key = "";
-
-const searchBtn = document.getElementById("search_btn");
-searchBtn.addEventListener('click', handleSearchClick);
-
-const clearBtn = document.getElementById("clear-btn");
-clearBtn.addEventListener('click', handleClearClick);
-
-const address = document.getElementById("add_input");
-address.onclick = handleToValid
-const region = document.getElementById("reg_input");
-region.onclick = handleToValid
-const city = document.getElementById("city_input");
-city.onclick = handleToValid
-const degrees = document.getElementsByName("degree")
-
-const mainElement = document.getElementById("main")
-
-let cardOn = 0;
-
-function handleToValid({target}){
-    if (target.classList.contains("is-invalid"))
-        target.classList.remove("is-invalid")
-}
-
-function handleSearchClick(){
-
-    let degree;
-    let valid = true;
-    
-    for (let i = 0; i < degrees.length; i++){
-        if (degrees[i].checked){
-            degree = degrees[i]
-        }
-
-    }
-    if (address.value.match(/^\s*$/)){
-        address.classList.add("is-invalid")
-        valid = false
-    }
-    if (region.value.match(/^\s*$/)){
-        region.classList.add("is-invalid")
-        valid = false
-    }
-    if (city.value.match(/^\s*$/)){
-        city.classList.add("is-invalid")
-        valid = false
-    }
-    if(degree.value.match(/^\s*$/) || (degree.value !== 'C' && degree.value !== 'F')){
-        degree.classList.add("is-invalid")
-        valid = false
-    }
-
-    if(valid){
-        apiCalls(address.value, region.value, city.value, degree.value)
-    }
-
-}
-
-function handleClearClick(){
-    //Remove invalid messages
-    if (address.classList.contains("is-invalid"))
-        address.classList.remove("is-invalid")
-    if (region.classList.contains("is-invalid"))
-        region.classList.remove("is-invalid")
-    if (city.classList.contains("is-invalid"))
-        city.classList.remove("is-invalid")
-
-    //Clear text boxes
-    address.value = "";
-    region.value = "";
-    city.value = "";
-
-    //Reset to Celcius
-    degrees[0].checked = true;
-
-    //Remove results
-    if (cardOn === 1){
-        mainElement.removeChild(mainElement.lastChild);
-        mainElement.removeChild(mainElement.lastChild);
-        mainElement.removeChild(mainElement.lastChild);
-        mainElement.removeChild(mainElement.lastChild);
-    }
-
-    cardOn = 0;
-}
-
-function apiCalls(add, reg, city, deg){
-    const url = `https://nominatim.openstreetmap.org/search?q=${add},${reg},${city}&format=json`;
-
-    fetch(url, {
-        method: "GET",
-        headers: {
-            "Accept": "application/json",
-        }
-    })
-    .then(
-        response =>{
-            if (!response.ok){
-                console.log("Status Code:",response.status);
-                return;
-            }
-        
-        response.json().then(
-            data => {
-                if(data.length === 0){
-                    alert("Results Not Found! Try Again.")
-                }else{
-                    requestWeatherConditions(data[0].lat, data[0].lon, deg, reg, city);
-                }
-            }
-        );
-        }
-    )
-    .catch(error=>{
-        console.log('Error: ', error);
-    })
-
-
-}
-
-function requestWeatherConditions(lat, lon, deg, reg, city){
-    console.log(lat, lon);
-    let unit;
-    if(deg === 'C'){
-        unit = "metric";
-    }else if(deg === 'F'){
-        unit = "imperial";
-    }
-
-    const outerURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
-    const innerURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
-
-    fetch(outerURL, {
-        method: "GET",
-        headers: {
-            "Accept": "application/json",
-        }
-    })
-    .then(
-        response =>{
-            if (!response.ok){
-                console.log("Status Code:",response.status);
-                return;
-            }
-        
-        response.json().then(
-            outerData => {
-                fetch(innerURL, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                    }
-                })
-                .then(
-                    response =>{
-                        if (!response.ok){
-                            console.log("Status Code:",response.status);
-                            return;
-                        }
-                    
-                    response.json().then(
-                        innerData => {
-                            createWeatherCard(outerData, innerData, deg, reg, city);
-                        }
-                    );
-                    }
-                )
-                .catch(error=>{
-                    console.log('Error: ', error);
-                })
-            }
-        );
-        }
-    )
-    .catch(error=>{
-        console.log('Error: ', error);
-    })
-}
-
-function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
+function createWeatherCard(dataNow, dataNextHours, deg){
 
     let windUnit;
     let pressureUnit;
@@ -265,34 +85,23 @@ function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
     const rowInner = document.createElement("div");
     rowInner.classList.add("row", "px-2", "pt-2");
 
+    const generalInfoRow = document.createElement("div");
+    generalInfoRow.classList.add("row", "text-center");
+
     const generalInfo = document.createElement("div");
-    generalInfo.classList.add("text-end");
+    generalInfo.classList.add("col-6");
 
     const generalInfo2 = generalInfo.cloneNode();
 
-    generalInfo.innerHTML = `<h6 id="weather-desc">${desc} in ${location}</h6>`;
-    generalInfo2.innerHTML = `<h2 id="temp">${temp} °${deg}</h2>`
+    generalInfo2.innerHTML = `<p id="weather-desc">${desc} in ${location}</p>
+                              <h2 id="temp">${temp} °${deg}</h2>
+                              <p><span class="lowtemp">L:${tempMin} °${deg}</span> | <span class="hightemp">H:${tempMax} °${deg}</span></p>`;
+    generalInfo.innerHTML = `<img src=https://openweathermap.org/img/wn/${icon}@2x.png class="icon">`
 
-    rowInner.appendChild(generalInfo);
-    rowInner.appendChild(generalInfo2);
+    generalInfoRow.appendChild(generalInfo);
+    generalInfoRow.appendChild(generalInfo2);
 
-    const lowHigh = document.createElement("div");
-    lowHigh.id = "low-high";
-    lowHigh.classList.add("text-end");
-    const low = document.createElement("span");
-    low.style.color = "blue";
-    low.textContent = `L:${tempMin} °${deg}`;
-    const line = document.createElement("span");
-    line.textContent = " | ";
-    const high = document.createElement("span");
-    high.style.color = "red";
-    high.textContent = `H:${tempMax} °${deg}`;
-
-    lowHigh.appendChild(low);
-    lowHigh.appendChild(line);
-    lowHigh.appendChild(high);
-
-    rowInner.appendChild(lowHigh)
+    rowInner.appendChild(generalInfoRow);
 
     const tableContainer = document.createElement("div");
     tableContainer.classList.add("px-4");
@@ -430,10 +239,9 @@ function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
         tableTimeData.textContent = formatTimestamp(new Date(dataNextHours.list[i].dt));
         
         const summaryImage = document.createElement("img");
-        summaryImage.src = `https://openweathermap.org/img/wn/${dataNextHours.list[i].weather[0].icon}@2x.png`
+        summaryImage.classList.add("icon");
         summaryImage.style.width = "25%";
-        summaryImage.style.height = "auto";
-        summaryImage.style.filter = "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7))";
+        summaryImage.src = `https://openweathermap.org/img/wn/${dataNextHours.list[i].weather[0].icon}@2x.png`
         tableSummaryData.appendChild(summaryImage);
 
         tableTempData.textContent = `${dataNextHours.list[i].main.temp} °${deg}`;
@@ -448,7 +256,7 @@ function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
         detailsButton.setAttribute("data-bs-target", "#next-24-hours-modal");
         detailsButton.id = `${i}`;
         detailsButton.addEventListener('click', ()=>{
-            changeModal(detailsButton, dataNextHours, summaryImage, pressureUnit, windUnit);
+            showModal(detailsButton, dataNextHours, summaryImage, pressureUnit, windUnit);
         });
         tableDetailsData.appendChild(detailsButton);
 
@@ -495,14 +303,16 @@ function createWeatherCard(dataNow,dataNextHours, deg, reg, city){
 
     const hLine2 = document.createElement("hr");
     mainElement.appendChild(hLine2);
-
-    createCharts(dataNextHours, deg, pressureUnit, reg, city);
-
-    cardOn = 1;
 }
 
-function createCharts(data, deg, pUnit, reg, city){
-    console.log(data);
+function createCharts(data, deg, reg, city){
+
+    let pressureUnit;
+    if (deg === 'C'){
+        pressureUnit = "hPa";
+    }else{
+        pressureUnit = "Mb";
+    }
 
     const chartContainer = document.createElement("div");
     chartContainer.classList.add("container", "mt-3");
@@ -534,7 +344,7 @@ function createCharts(data, deg, pUnit, reg, city){
     let tempValues = [];
     let humValues = [];
     let pressValues= [];
-    let dayLabels = [];
+    let timestamps = [];
 
     for (let i=0; i<40; i++){
         tempValues.push(parseFloat(data.list[i].main.temp))
@@ -542,35 +352,29 @@ function createCharts(data, deg, pUnit, reg, city){
         pressValues.push(parseInt(data.list[i].main.pressure))
     }
 
-    for(let i=0; i<40; i = i+8){
-        dayLabels.push(formatTimestampForChart(data.list[i].dt));
+    for(let i=0; i<40; i++){
+        timestamps.push(formatTimestamp(data.list[i].dt));
     }
 
     const layout = {
         margin: { l: 40, r: 20, t: 40, b: 40 },
-        xaxis: {
-            tickvals: [0, 8, 16, 24, 32],
-            ticktext: dayLabels,
-            showline: true
-        }
     };
 
     const tempTrace = {
-        x: Array.from({ length: 40 }, (_, i) => i), // 40 data points
-         // values in x axis
+        x: timestamps, // 40 data points
         y: tempValues, // array of values that will be plotted
         mode: 'lines+markers' // linechart with markers (dots)
      };
 
 
     const humTrace = {
-            x: Array.from({ length: 40 }, (_, i) => i), // values in x axis
+            x: timestamps, // values in x axis
             y: humValues, // array of values that will be plotted
             mode: 'lines+markers' // linechart with markers (dots)
     };
 
     const pressTrace = {
-        x: Array.from({ length: 40 }, (_, i) => i), // values in x axis
+        x: timestamps, // values in x axis
         y: pressValues, // array of values that will be plotted
         mode: 'lines+markers' // linechart with markers (dots)
     };
@@ -579,53 +383,12 @@ function createCharts(data, deg, pUnit, reg, city){
     Plotly.newPlot("tempChart", [tempTrace], layout, {responsive: true});
     layout.title = {text: 'Humidity (%)'};
     Plotly.newPlot("humChart", [humTrace], layout, {responsive: true});
-    layout.title = {text: `Pressure (${pUnit})`};
+    layout.title = {text: `Pressure (${pressureUnit})`};
     Plotly.newPlot("pressChart", [pressTrace], layout, {responsive: true});
 
 }
 
-function capitalizeWords(str) {
-    return str.split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-}
-
-function formatTimestamp(timestamp) {
-    const date = new Date(timestamp * 1000);
-  
-    const year = date.getFullYear();
-    const month = String(date.getMonth()+1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
-
-function formatTimestampForModal(timestamp) {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-    const date = new Date(timestamp * 1000);
-  
-    const year = date.getFullYear();
-    const month = date.getMonth()
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-    return `${day} ${months[month]} ${year} ${hours}:${minutes}`;
-}
-
-function formatTimestampForChart(timestamp) {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
-    const date = new Date(timestamp * 1000);
-  
-    const month = date.getMonth()
-    const day = String(date.getDate()).padStart(2, '0');
-  
-    return `${months[month]} ${day}`;
-}
-
-function changeModal(element, data, summaryImg, pUnit, wUnit){
+function showModal(element, data, summaryImg, pUnit, wUnit){
     modalID = parseInt(element.id);
     const date = formatTimestampForModal(data.list[modalID].dt)
 
