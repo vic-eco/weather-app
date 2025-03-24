@@ -18,11 +18,6 @@ const mainElement = document.getElementById("main")
 
 let cardOn = 0;
 
-function handleToValid({target}){
-    if (target.classList.contains("is-invalid"))
-        target.classList.remove("is-invalid")
-}
-
 async function handleSearchClick(){
 
     searchBtn.setAttribute("disabled", true);
@@ -92,6 +87,12 @@ function handleClearClick(){
     }
 
     cardOn = 0;
+}
+
+function handleToValid({target}){
+    if (target.classList.contains("is-invalid"))
+        target.classList.remove("is-invalid")
+}
 
     // fetch('server.php', {
     //     method: 'GET', // or 'POST' if your PHP needs to handle form data
@@ -108,4 +109,3 @@ function handleClearClick(){
     //     .catch(error => {
     //       console.error('Error:', error);
     //     });
-}
