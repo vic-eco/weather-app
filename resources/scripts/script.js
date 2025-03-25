@@ -6,6 +6,9 @@ searchBtn.addEventListener('click', handleSearchClick);
 const clearBtn = document.getElementById("clear-btn");
 clearBtn.addEventListener('click', handleClearClick);
 
+const logBtn = document.getElementById("log-btn");
+logBtn.addEventListener('click', handleLogClick);
+
 const address = document.getElementById("add_input");
 address.onclick = handleToValid
 const region = document.getElementById("reg_input");
@@ -17,6 +20,7 @@ const degrees = document.getElementsByName("degree")
 const mainElement = document.getElementById("main")
 
 let cardOn = 0;
+let updateLogs = 0;
 
 async function handleSearchClick(){
 
@@ -51,10 +55,16 @@ async function handleSearchClick(){
 
     if(valid){
         const [lat, lon] = await requestLatLon(address.value, region.value, city.value)
+        if (!lat || !lon){
+            searchBtn.removeAttribute("disabled");
+            document.querySelector("html").style.cursor = "";
+        }
         const [weatherdata, forecastData] = await requestWeatherData(lat, lon, degree.value);
         createWeatherCard(weatherdata, forecastData, degree.value);
         createCharts(forecastData, degree.value, region.value, city.value);
+        await storeToDB(region.value, city.value, address.value, "Cyprus");
         cardOn = 1;
+        updateLogs = 1;
     }
 
     searchBtn.removeAttribute("disabled");
@@ -89,23 +99,23 @@ function handleClearClick(){
     cardOn = 0;
 }
 
+async function handleLogClick() {
+    let modal = document.getElementById('logs-modal');  
+
+    if (!modal || updateLogs === 1) {
+        const data = await retrieveLogsFromDB();
+        modal = createLogsModal(data);
+        document.querySelector("body").appendChild(modal);
+    }
+
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+
+    updateLogs = 0;
+}
+
+
 function handleToValid({target}){
     if (target.classList.contains("is-invalid"))
         target.classList.remove("is-invalid")
 }
-
-    // fetch('server.php', {
-    //     method: 'GET', // or 'POST' if your PHP needs to handle form data
-    //   })
-    //     .then(response => {
-    //       if (!response.ok) {
-    //         throw new Error('Network response was not ok ' + response.statusText);
-    //       }
-    //       return response.text(); // or response.json() if PHP returns JSON
-    //     })
-    //     .then(data => {
-    //       console.log('Success:', data);
-    //         })
-    //     .catch(error => {
-    //       console.error('Error:', error);
-    //     });

@@ -23,6 +23,7 @@ async function requestLatLon(add, reg, city){
         data = await response.json();
         if(data.length === 0){
             alert("Results Not Found! Try Again.")
+            return [null,null];
         }else{
             return [data[0].lat, data[0].lon];
         }
@@ -85,6 +86,67 @@ async function requestWeatherData(lat, lon, deg){
 
     const forecastData = await forecastResponse.json();
     return [weatherData, forecastData];
+
+    }catch(error){
+        console.log('Error: ', error);
+        return null;
+    }
+}
+
+/*
+ * Stores search values to database.
+ */
+async function storeToDB(region, city, address, country){
+
+    const body = {
+        region: region,
+        city: city,
+        address: address,
+        country: country
+    };
+
+    try{
+        const response = await fetch("./resources/server/storeSearch.php", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body), 
+        });
+        if (!response.ok){
+            console.log("Status Code:",response.status);
+            throw new Error("Failed to store data");
+        }
+
+        const data = await response.json()
+
+        console.log(data);
+
+    }catch(error){
+        console.log('Error: ', error);
+        return null;
+    }
+}
+
+/* 
+ * Requests last 5 searches from database.
+ */
+async function retrieveLogsFromDB(region, city, address, country){
+
+    try{
+        const response = await fetch("./resources/server/getLogs.php", {
+            method: "GET",
+            headers: {
+            "Accept": "application/json"
+            },
+        });
+        if (!response.ok){
+            console.log("Status Code:",response.status);
+            throw new Error("Failed to store data");
+        }
+
+        const data = await response.json()
+        return data;
 
     }catch(error){
         console.log('Error: ', error);

@@ -499,3 +499,111 @@ function createDetailsModal(){
 
     return next24HoursModal;
 }
+
+/*
+ * Creates the modal for the logs.
+ */
+function createLogsModal(data) {
+    const modal = document.createElement('div');
+    modal.classList.add("modal");
+    modal.tabIndex = -1;
+    modal.id = 'logs-modal';
+
+    const modalDialog = document.createElement('div');
+    modalDialog.className = 'modal-dialog';
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+
+    const modalTitle = document.createElement('h5');
+    modalTitle.className = 'modal-title';
+    modalTitle.textContent = "Last 5 requests";
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close';
+    closeButton.setAttribute('data-bs-dismiss', 'modal');
+    closeButton.setAttribute('aria-label', 'Close');
+
+    const modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    modalBody.id = "modal-body";
+
+    const modalFooter = document.createElement('div');
+    modalFooter.className = 'modal-footer';
+
+    const closeFooterButton = document.createElement('button');
+    closeFooterButton.type = 'button';
+    closeFooterButton.className = 'btn btn-danger';
+    closeFooterButton.setAttribute('data-bs-dismiss', 'modal');
+    closeFooterButton.textContent = 'Close';
+
+    const contentTable = document.createElement("table");
+    contentTable.classList.add("table", "text-center", "table-striped");
+
+    const tableHead = document.createElement("thead");
+
+    const timeHead = document.createElement("th");
+    timeHead.textContent = "Time";
+    const addressHead = document.createElement("th");
+    addressHead.textContent = "Address";
+    const regionHead = document.createElement("th");
+    regionHead.textContent = "Region";
+    const cityHead = document.createElement("th");
+    cityHead.textContent = "City";
+    const countryHead = document.createElement("th");
+    countryHead.textContent = "Country";
+
+    tableHead.appendChild(timeHead);
+    tableHead.appendChild(addressHead);
+    tableHead.appendChild(regionHead);
+    tableHead.appendChild(cityHead);
+    tableHead.appendChild(countryHead);
+
+    const tBody = document.createElement("tbody");
+
+    for (let i = 0; i < data.length; i++) {
+        const timeValue = document.createElement("td");
+        timeValue.textContent = formatTimestampForModal(data[i].timestamp);
+        const addressValue = document.createElement("td");
+        addressValue.textContent = data[i].address;
+        const regionValue = document.createElement("td");
+        regionValue.textContent = data[i].region;
+        const cityValue = document.createElement("td");
+        cityValue.textContent = data[i].city;
+        const countryValue = document.createElement("td");
+        countryValue.textContent = data[i].country;
+
+        const tableRow = document.createElement("tr");
+        tableRow.appendChild(timeValue);
+        tableRow.appendChild(addressValue);
+        tableRow.appendChild(regionValue);
+        tableRow.appendChild(cityValue);
+        tableRow.appendChild(countryValue);
+
+        tBody.appendChild(tableRow);
+    }
+
+    contentTable.appendChild(tableHead);
+    contentTable.appendChild(tBody);
+
+    modalBody.appendChild(contentTable);
+
+    modalHeader.appendChild(modalTitle);
+    modalHeader.appendChild(closeButton);
+
+    modalFooter.appendChild(closeFooterButton);
+
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modalContent.appendChild(modalFooter);
+
+    modalDialog.appendChild(modalContent);
+
+    modal.appendChild(modalDialog);
+
+    return modal;
+}
