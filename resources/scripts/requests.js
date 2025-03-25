@@ -1,3 +1,9 @@
+/*
+ * Makes an HTTP request to the Nominatim OpenStreetMap API
+ * based on an address, region and city.
+ * 
+ * returns latitude and longitude
+ */ 
 async function requestLatLon(add, reg, city){
     const url = `https://nominatim.openstreetmap.org/search?q=${add},${reg},${city}&format=json`;
 
@@ -19,7 +25,6 @@ async function requestLatLon(add, reg, city){
             alert("Results Not Found! Try Again.")
         }else{
             return [data[0].lat, data[0].lon];
-            // requestWeatherConditions(data[0].lat, data[0].lon, deg, reg, city);
         }
     }catch(error){
         console.log('Error: ', error);
@@ -28,6 +33,15 @@ async function requestLatLon(add, reg, city){
 
 }
 
+/*
+ * Makes two HTTP requests to the OpenWeatherMap API
+ * based on an latitude, longitute and chosen degree unit.
+ * 
+ * First request: current weather data
+ * Second request: 5 day weather forecast data
+ * 
+ * returns current weather data and forecast data 
+ */ 
 async function requestWeatherData(lat, lon, deg){
     let unit;
     if(deg === 'C'){
@@ -40,6 +54,8 @@ async function requestWeatherData(lat, lon, deg){
     const forecastURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${unit}&APPID=${key}`;
 
     try{
+
+    //current weather
     const weatherResponse = await fetch(weatherURL, {
         method: "GET",
         headers: {
@@ -54,6 +70,7 @@ async function requestWeatherData(lat, lon, deg){
 
     const weatherData = await weatherResponse.json();
 
+    //5 day forecast
     const forecastResponse = await fetch(forecastURL, {
         method: "GET",
         headers: {

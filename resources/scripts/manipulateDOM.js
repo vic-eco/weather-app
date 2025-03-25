@@ -1,5 +1,9 @@
+/*
+ * Creates a bootstrap weather card in the DOM with 2 tabs (Right Now, Next 24 Hours)
+ */ 
 function createWeatherCard(dataNow, dataNextHours, deg){
 
+    //Define unit (metric / imperial)
     let windUnit;
     let pressureUnit;
     if (deg === 'C'){
@@ -10,6 +14,7 @@ function createWeatherCard(dataNow, dataNextHours, deg){
         pressureUnit = "Mb";
     }
 
+    //Set json data to variables
     let desc = dataNow.weather[0].description;
     desc = capitalizeWords(desc);
 
@@ -25,6 +30,7 @@ function createWeatherCard(dataNow, dataNextHours, deg){
     const sunset = formatTimestamp(dataNow.sys.sunset);
     const location = dataNow.name;
 
+    //Check if weather card is already active. If it is allow recreation.
     if(cardOn == 1){
     mainElement.removeChild(mainElement.lastChild);
     mainElement.removeChild(mainElement.lastChild);
@@ -32,9 +38,11 @@ function createWeatherCard(dataNow, dataNextHours, deg){
     mainElement.removeChild(mainElement.lastChild);
     }
 
+    //Horizontal line break
     const hLine = document.createElement("hr");
     mainElement.appendChild(hLine);
 
+    //Begin creating weather card.
     const labels = ["Pressure:", "Humidity:", "Wind Speed:", "Cloud Cover:", "Sunrise:", "Sunset:"];
     const values = [`${pressure} ${pressureUnit}`, `${humidity} %`, `${windSpeed} ${windUnit}`, `${cloudCover} %`, sunrise, sunset];
     let labelIndex = 0;
@@ -43,6 +51,7 @@ function createWeatherCard(dataNow, dataNextHours, deg){
     container.classList.add("container", "mt-3");
     container.id = "weather-details-card"
 
+    //Create navigation section.
     const navList = document.createElement("ul");
     navList.classList.add("nav", "nav-tabs");
 
@@ -69,37 +78,39 @@ function createWeatherCard(dataNow, dataNextHours, deg){
 
     container.appendChild(navList);
 
+    //Create main content section.
     const tabs = document.createElement("div");
     tabs.classList.add("tab-content", "bg-light");
 
+    //Begin "Right Now" tab creation.
     const rightNow = document.createElement("div");
     rightNow.id = "right-now";
     rightNow.classList.add("tab-pane", "fade", "show", "active");
 
     const rowOuter = document.createElement("div");
     rowOuter.classList.add("row");
-
+    
     const tabDivider = document.createElement("div");
     tabDivider.classList.add("col-md-6");
 
     const rowInner = document.createElement("div");
     rowInner.classList.add("row", "px-2", "pt-2");
-
+    
     const generalInfoRow = document.createElement("div");
     generalInfoRow.classList.add("row", "text-center");
 
-    const generalInfo = document.createElement("div");
-    generalInfo.classList.add("col-6");
+    const generalInfoImg = document.createElement("div");
+    generalInfoImg.classList.add("col-6");
 
-    const generalInfo2 = generalInfo.cloneNode();
+    const generalInfoText = generalInfoImg.cloneNode();
 
-    generalInfo2.innerHTML = `<p id="weather-desc">${desc} in ${location}</p>
-                              <h2 id="temp">${temp} °${deg}</h2>
-                              <p><span class="lowtemp">L:${tempMin} °${deg}</span> | <span class="hightemp">H:${tempMax} °${deg}</span></p>`;
-    generalInfo.innerHTML = `<img src=https://openweathermap.org/img/wn/${icon}@2x.png class="icon">`
-
-    generalInfoRow.appendChild(generalInfo);
-    generalInfoRow.appendChild(generalInfo2);
+    generalInfoImg.innerHTML = `<img src=https://openweathermap.org/img/wn/${icon}@2x.png class="icon">`;
+    generalInfoText.innerHTML = `<p id="weather-desc">${desc} in ${location}</p>
+                                 <h2 id="temp">${temp} °${deg}</h2>
+                                 <p><span class="lowtemp">L:${tempMin} °${deg}</span> | <span class="hightemp">H:${tempMax} °${deg}</span></p>`;
+   
+    generalInfoRow.appendChild(generalInfoImg);
+    generalInfoRow.appendChild(generalInfoText);
 
     rowInner.appendChild(generalInfoRow);
 
@@ -142,66 +153,15 @@ function createWeatherCard(dataNow, dataNextHours, deg){
     rightNow.appendChild(rowOuter);
     tabs.appendChild(rightNow);
 
+    //Begin "Next 24 Hours" tab creation.
     const next24Hours = document.createElement("div");
     next24Hours.id = "next-24-hours";
     next24Hours.classList.add("tab-pane", "fade", "pt-3");
 
+    //Create details modal
+    next24Hours.appendChild(createDetailsModal());
 
-    const next24HoursModal = document.createElement('div');
-    next24HoursModal.classList.add("modal");
-    next24HoursModal.tabIndex = -1;
-    next24HoursModal.id = 'next-24-hours-modal';
-
-    const next24HoursModalDialog = document.createElement('div');
-    next24HoursModalDialog.className = 'modal-dialog';
-
-    const next24HoursModalContent = document.createElement('div');
-    next24HoursModalContent.className = 'modal-content';
-
-    const next24HoursModalHeader = document.createElement('div');
-    next24HoursModalHeader.className = 'modal-header';
-
-    const next24HoursModalTitle = document.createElement('h5');
-    next24HoursModalTitle.className = 'modal-title';
-    next24HoursModalTitle.id = 'next-24-hours-modal-title';
-
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'btn-close';
-    closeButton.setAttribute('data-bs-dismiss', 'modal');
-    closeButton.setAttribute('aria-label', 'Close');
-
-    const next24HoursModalBody = document.createElement('div');
-    next24HoursModalBody.className = 'modal-body';
-    next24HoursModalBody.id = "next-24-hours-modal-body";
-
-    const next24HoursModalFooter = document.createElement('div');
-    next24HoursModalFooter.className = 'modal-footer';
-
-    const closeFooterButton = document.createElement('button');
-    closeFooterButton.type = 'button';
-    closeFooterButton.className = 'btn btn-danger';
-    closeFooterButton.setAttribute('data-bs-dismiss', 'modal');
-    closeFooterButton.textContent = 'Close';
-
-    next24HoursModalHeader.appendChild(next24HoursModalTitle);
-    next24HoursModalHeader.appendChild(closeButton);
-    next24HoursModalFooter.appendChild(closeFooterButton);
-    next24HoursModalContent.appendChild(next24HoursModalHeader);
-    next24HoursModalContent.appendChild(next24HoursModalBody);
-    next24HoursModalContent.appendChild(next24HoursModalFooter);
-    next24HoursModalDialog.appendChild(next24HoursModalContent);
-    next24HoursModal.appendChild(next24HoursModalDialog);
-
-    new bootstrap.Modal(next24HoursModal);
-
-    next24HoursModal.addEventListener('hidden.bs.modal', function () {
-        next24HoursModal.querySelector('#next-24-hours-modal-title').textContent = ''; 
-        next24HoursModal.querySelector('#next-24-hours-modal-body').innerHTML = '';
-    });
-
-    next24Hours.appendChild(next24HoursModal);
-
+    //Create content of "Next 24 Hours" tab
     const next24Table = document.createElement("table");
     next24Table.id = "next-24-table";
     next24Table.classList.add("table", "table-striped", "text-center");
@@ -277,9 +237,10 @@ function createWeatherCard(dataNow, dataNextHours, deg){
 
     container.appendChild(tabs);
 
+    //Append the weather card to the DOM.
     mainElement.appendChild(container);
 
-    
+    //Initialize the map in "Right Now" tab after its container has been appended to the DOM.
     let map = new ol.Map({ 
         target: 'map',
         layers: [
@@ -301,11 +262,15 @@ function createWeatherCard(dataNow, dataNextHours, deg){
     
     map.addLayer(layer_temp);
 
-    const hLine2 = document.createElement("hr");
-    mainElement.appendChild(hLine2);
 }
 
+/*
+ * Creates 5 day forecast charts for temperature, humidity, pressure
+ */
 function createCharts(data, deg, reg, city){
+
+    const hLine = document.createElement("hr");
+    mainElement.appendChild(hLine);
 
     let pressureUnit;
     if (deg === 'C'){
@@ -314,6 +279,8 @@ function createCharts(data, deg, reg, city){
         pressureUnit = "Mb";
     }
 
+
+    //Create container structure for the charts
     const chartContainer = document.createElement("div");
     chartContainer.classList.add("container", "mt-3");
 
@@ -341,6 +308,7 @@ function createCharts(data, deg, reg, city){
 
     mainElement.appendChild(chartContainer);
 
+    //Get values from data
     let tempValues = [];
     let humValues = [];
     let pressValues= [];
@@ -356,27 +324,29 @@ function createCharts(data, deg, reg, city){
         timestamps.push(formatTimestamp(data.list[i].dt));
     }
 
+
+    //Begin chart creation
     const layout = {
         margin: { l: 40, r: 20, t: 40, b: 40 },
     };
 
     const tempTrace = {
-        x: timestamps, // 40 data points
-        y: tempValues, // array of values that will be plotted
-        mode: 'lines+markers' // linechart with markers (dots)
+        x: timestamps,
+        y: tempValues,
+        mode: 'lines+markers'
      };
 
 
     const humTrace = {
-            x: timestamps, // values in x axis
-            y: humValues, // array of values that will be plotted
-            mode: 'lines+markers' // linechart with markers (dots)
+            x: timestamps, 
+            y: humValues, 
+            mode: 'lines+markers'
     };
 
     const pressTrace = {
-        x: timestamps, // values in x axis
-        y: pressValues, // array of values that will be plotted
-        mode: 'lines+markers' // linechart with markers (dots)
+        x: timestamps,
+        y: pressValues, 
+        mode: 'lines+markers'
     };
 
     layout.title = {text: `Temperature (${deg})`};
@@ -388,7 +358,11 @@ function createCharts(data, deg, reg, city){
 
 }
 
+/*
+ * Changes the modal based of the "details" button clicked.
+ */
 function showModal(element, data, summaryImg, pUnit, wUnit){
+    createDetailsModal()
     modalID = parseInt(element.id);
     const date = formatTimestampForModal(data.list[modalID].dt)
 
@@ -398,12 +372,73 @@ function showModal(element, data, summaryImg, pUnit, wUnit){
     const contentTopContainer = document.createElement("div");
     contentTopContainer.style.textAlign = "center";
 
-    const content = document.getElementById("next-24-hours-modal-body");
-    let contentIcon = summaryImg.cloneNode(false);
-    contentIcon.style.width = "20%"
+    const contentIcon = document.getElementById("next-24-hours-modal-icon");
+    contentIcon.src = summaryImg.src
+    
+    const contentDesc = document.getElementById("next-24-hours-modal-desc");
+    contentDesc.textContent = `${data.list[modalID].weather[0].main} (${data.list[modalID].weather[0].description})`;
+
+
+    const humidityValue = document.getElementById("next-24-hours-modal-humidity");
+    humidityValue.textContent = `${data.list[modalID].main.humidity}%`;
+    const pressureValue = document.getElementById("next-24-hours-modal-pressure");
+    pressureValue.textContent = `${data.list[modalID].main.pressure} ${pUnit}`;
+    const windSpeedValue = document.getElementById("next-24-hours-modal-wind-speed");
+    windSpeedValue.textContent = `${data.list[modalID].wind.speed} ${wUnit}`;
+}
+
+/*
+ * Creates the "details" modals of the "Next 24 Hours" tab
+ */
+function createDetailsModal(){
+    const next24HoursModal = document.createElement('div');
+    next24HoursModal.classList.add("modal");
+    next24HoursModal.tabIndex = -1;
+    next24HoursModal.id = 'next-24-hours-modal';
+
+    const next24HoursModalDialog = document.createElement('div');
+    next24HoursModalDialog.className = 'modal-dialog';
+
+    const next24HoursModalContent = document.createElement('div');
+    next24HoursModalContent.className = 'modal-content';
+
+    const next24HoursModalHeader = document.createElement('div');
+    next24HoursModalHeader.className = 'modal-header';
+
+    const next24HoursModalTitle = document.createElement('h5');
+    next24HoursModalTitle.className = 'modal-title';
+    next24HoursModalTitle.id = 'next-24-hours-modal-title';
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close';
+    closeButton.setAttribute('data-bs-dismiss', 'modal');
+    closeButton.setAttribute('aria-label', 'Close');
+
+    const next24HoursModalBody = document.createElement('div');
+    next24HoursModalBody.className = 'modal-body';
+    next24HoursModalBody.id = "next-24-hours-modal-body";
+
+    const next24HoursModalFooter = document.createElement('div');
+    next24HoursModalFooter.className = 'modal-footer';
+
+    const closeFooterButton = document.createElement('button');
+    closeFooterButton.type = 'button';
+    closeFooterButton.className = 'btn btn-danger';
+    closeFooterButton.setAttribute('data-bs-dismiss', 'modal');
+    closeFooterButton.textContent = 'Close';
+
+    const contentTopContainer = document.createElement("div");
+    contentTopContainer.style.textAlign = "center";
+
+    const contentIcon = document.createElement("img");
+    contentIcon.id = "next-24-hours-modal-icon";
+    contentIcon.classList.add("icon");
+    contentIcon.style.width = "25%";
+    contentIcon.src = "";
     
     const contentDesc = document.createElement("span");
-    contentDesc.textContent = `${data.list[modalID].weather[0].main} (${data.list[modalID].weather[0].description})`;
+    contentDesc.id = "next-24-hours-modal-desc";
     contentDesc.style.marginLeft = "3rem";
 
     contentTopContainer.appendChild(contentIcon);
@@ -427,11 +462,11 @@ function showModal(element, data, summaryImg, pUnit, wUnit){
     contentTable.appendChild(tableHead);
 
     const humidityValue = document.createElement("td");
-    humidityValue.textContent = `${data.list[modalID].main.humidity}%`;
+    humidityValue.id = "next-24-hours-modal-humidity";
     const pressureValue = document.createElement("td");
-    pressureValue.textContent = `${data.list[modalID].main.pressure} ${pUnit}`;
+    pressureValue.id = "next-24-hours-modal-pressure";
     const windSpeedValue = document.createElement("td");
-    windSpeedValue.textContent = `${data.list[modalID].wind.speed} ${wUnit}`;
+    windSpeedValue.id = "next-24-hours-modal-wind-speed";
 
     const tableRow = document.createElement("tr");
     tableRow.appendChild(humidityValue);
@@ -440,6 +475,27 @@ function showModal(element, data, summaryImg, pUnit, wUnit){
 
     contentTable.appendChild(tableRow);
 
-    content.appendChild(contentTopContainer);
-    content.appendChild(contentTable);
+    next24HoursModalBody.appendChild(contentTopContainer);
+    next24HoursModalBody.appendChild(contentTable);
+
+    next24HoursModalHeader.appendChild(next24HoursModalTitle);
+    next24HoursModalHeader.appendChild(closeButton);
+
+    next24HoursModalFooter.appendChild(closeFooterButton);
+
+    next24HoursModalContent.appendChild(next24HoursModalHeader);
+    next24HoursModalContent.appendChild(next24HoursModalBody);
+    next24HoursModalContent.appendChild(next24HoursModalFooter);
+
+    next24HoursModalDialog.appendChild(next24HoursModalContent);
+
+    next24HoursModal.appendChild(next24HoursModalDialog);
+
+    new bootstrap.Modal(next24HoursModal);
+
+    next24HoursModal.addEventListener('hidden.bs.modal', function () {
+        next24HoursModal.querySelector('#next-24-hours-modal').display = 'none'; 
+    });
+
+    return next24HoursModal;
 }
